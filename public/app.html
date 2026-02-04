@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <!-- Quill.js for rich text editing -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <!-- Highlight.js for code syntax highlighting in markdown view -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <!-- CodeMirror for markdown editing -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+</head>
+<body class="app-page">
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Expand buttons (visible when panels are collapsed) -->
+    <button class="expand-sidebar-btn" id="expand-sidebar-btn" title="Show folders">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button class="expand-notes-btn" id="expand-notes-btn" title="Show notes">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <!-- Sidebar - Folders -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button class="menu-btn" id="menu-btn" title="Toggle sidebar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <h2>Folders</h2>
+        <button class="icon-btn collapse-btn" id="collapse-sidebar-btn" title="Hide folders">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 3l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="new-folder-btn" title="New folder">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 4v12M4 10h12" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="folder-nav">
+        <ul class="folder-list" id="folder-list">
+          <li class="folder-item active" data-folder="all">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+              <path d="M2 4h14a1 1 0 011 1v10a1 1 0 01-1 1H2a1 1 0 01-1-1V5a1 1 0 011-1z"/>
+              <path d="M1 4l3-2h4l2 2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <span>All Notes</span>
+            <span class="note-count" id="all-notes-count">0</span>
+          </li>
+          <li class="folder-item" data-folder="trash">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 5h12M7 5V3h4v2M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/>
+              <path d="M7 8v5M11 8v5"/>
+            </svg>
+            <span>Trash</span>
+            <span class="note-count" id="trash-count">0</span>
+          </li>
+        </ul>
+
+        <div class="folder-divider"></div>
+
+        <ul class="folder-list custom-folders" id="custom-folders">
+          <!-- Custom folders will be added here -->
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="icon-btn logout-btn" id="logout-btn" title="Sign out">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 15H3a1 1 0 01-1-1V4a1 1 0 011-1h3M12 12l3-3-3-3M6 9h9"/>
+          </svg>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Notes List -->
+    <section class="notes-panel" id="notes-panel">
+      <div class="notes-header">
+        <div class="notes-header-top">
+          <button class="back-btn mobile-only" id="sidebar-toggle">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 5h14M3 10h14M3 15h14" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <h2 id="current-folder-title">All Notes</h2>
+          <button class="icon-btn collapse-btn" id="collapse-notes-btn" title="Hide notes list">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 3l-5 5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="icon-btn" id="new-note-header-btn" title="New note">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 4v12M4 10h12" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="7" cy="7" r="5"/>
+            <path d="M11 11l3 3"/>
+          </svg>
+          <input type="text" id="search-input" placeholder="Search notes...">
+        </div>
+      </div>
+
+      <div class="notes-list" id="notes-list">
+        <!-- Notes will be rendered here -->
+      </div>
+
+          </section>
+
+    <!-- Note Editor -->
+    <main class="editor-panel" id="editor-panel">
+      <div class="editor-placeholder" id="editor-placeholder">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="12" y="8" width="40" height="48" rx="4"/>
+          <path d="M20 20h24M20 32h20M20 44h16"/>
+        </svg>
+        <p>Select a note or create a new one</p>
+      </div>
+
+      <div class="editor-container" id="editor-container" style="display: none;">
+        <div class="editor-timestamps">
+          <div class="timestamps-left">
+            <div class="timestamp-row">
+              <span class="timestamp-label">Created:</span>
+              <span class="timestamp-value" id="note-created-date"></span>
+            </div>
+            <div class="timestamp-row">
+              <span class="timestamp-label">Last edited:</span>
+              <span class="timestamp-value" id="note-updated-date"></span>
+            </div>
+            <div class="timestamp-row">
+              <span class="timestamp-label">Folder:</span>
+              <span class="timestamp-value" id="note-folder-badge"></span>
+            </div>
+          </div>
+          <div class="timestamps-right">
+            <button class="icon-btn danger" id="delete-note-btn" title="Delete note">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 5h12M7 5V3h4v2M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/>
+              </svg>
+            </button>
+            <button class="icon-btn" id="undo-btn" title="Undo">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M4 7h7a4 4 0 1 1 0 8H9" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 4L4 7l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="icon-btn" id="redo-btn" title="Redo">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 7H7a4 4 0 1 0 0 8h2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M11 4l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-header">
+          <button class="back-btn mobile-only" id="notes-list-toggle">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 4l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <input type="text" class="note-title-input" id="note-title" placeholder="Title">
+          <div class="editor-actions">
+            <button class="ai-title-btn" id="ai-title-btn" title="Generate title with AI">
+              AI Generated Title
+            </button>
+            <div class="view-toggle" id="view-toggle">
+              <button class="view-toggle-btn active" data-view="normal">Normal</button>
+              <button class="view-toggle-btn" data-view="markdown">Markdown</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quill Editor -->
+        <div class="editor-content" id="editor-content">
+          <div id="quill-editor"></div>
+        </div>
+
+        <!-- Markdown View (CodeMirror Editor) -->
+        <div class="markdown-view" id="markdown-view" style="display: none;">
+          <textarea id="markdown-editor"></textarea>
+        </div>
+
+        <!-- Trash Actions -->
+        <div class="trash-actions" id="trash-actions" style="display: none;">
+          <button class="btn btn-secondary" id="restore-note-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 9h12M9 3l6 6-6 6"/>
+            </svg>
+            Restore Note
+          </button>
+          <button class="btn btn-danger" id="permanent-delete-btn">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 5h12M7 5V3h4v2M5 5v10a1 1 0 001 1h6a1 1 0 001-1V5"/>
+            </svg>
+            Delete Permanently
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- New Folder Modal -->
+  <div class="modal" id="new-folder-modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>New Folder</h3>
+        <button class="modal-close" id="new-folder-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="new-folder-name" placeholder="Folder name" maxlength="50">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="new-folder-cancel">Cancel</button>
+        <button class="btn btn-primary" id="new-folder-save">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="modal" id="confirm-modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="confirm-title">Confirm</h3>
+        <button class="modal-close" id="confirm-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message">Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-danger" id="confirm-ok">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- CodeMirror for markdown editing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
